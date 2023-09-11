@@ -75,13 +75,18 @@ impl StateMachineTestContext {
 
     pub fn get_counter(&self, sender: Principal) -> u64 {
         let args = &();
-        self.query_as(self.canister_a_principal, sender,  "get_counter", args)
+        self.query_as(self.canister_a_principal, sender, "get_counter", args)
     }
 
     pub fn get_counter_from_another_canister(&self, sender: Principal) -> u64 {
         let args = &();
-        self.update_call_as(self.canister_a_principal, sender,"get_counter_from_another_canister", args)
-    }  
+        self.update_call_as(
+            self.canister_a_principal,
+            sender,
+            "get_counter_from_another_canister",
+            args,
+        )
+    }
 
     pub fn increase_counter(&self, sender: Principal) {
         let args = &();
@@ -90,41 +95,60 @@ impl StateMachineTestContext {
 
     pub fn increase_counter_panic(&self, sender: Principal) {
         let args = &();
-        let result = self.env.update_call(self.canister_a_principal, sender, "increase_counter_panic", encode(args));
+        let result = self.env.update_call(
+            self.canister_a_principal,
+            sender,
+            "increase_counter_panic",
+            encode(args),
+        );
         assert!(result.is_err())
-    }  
+    }
 
     pub fn increase_counter_then_call_async_fn_then_panic(&self, sender: Principal) {
         let args = &();
-        let result = self.env.update_call(self.canister_a_principal, sender, "increase_counter_then_call_async_fn_then_panic", encode(args));
+        let result = self.env.update_call(
+            self.canister_a_principal,
+            sender,
+            "increase_counter_then_call_async_fn_then_panic",
+            encode(args),
+        );
         assert!(result.is_err())
-    }  
-    
+    }
+
     pub fn increase_counter_then_call_another_canister_then_panic(&self, sender: Principal) {
         let args = &();
-        let result = self.env.update_call(self.canister_a_principal, sender, "increase_counter_then_call_another_canister_then_panic", encode(args));
+        let result = self.env.update_call(
+            self.canister_a_principal,
+            sender,
+            "increase_counter_then_call_another_canister_then_panic",
+            encode(args),
+        );
         assert!(result.is_err())
-    } 
+    }
 
     pub fn increase_counter_then_call_same_canister_then_panic(&self, sender: Principal) {
         let args = &();
-        let result = self.env.update_call(self.canister_a_principal, sender, "increase_counter_then_call_same_canister_then_panic", encode(args));
+        let result = self.env.update_call(
+            self.canister_a_principal,
+            sender,
+            "increase_counter_then_call_same_canister_then_panic",
+            encode(args),
+        );
         assert!(result.is_err())
-    } 
-
+    }
 }
 
 pub fn with_state_machine_context<'a, F, E>(f: F) -> Result<(), E>
 where
     F: FnOnce(&StateMachineTestContext) -> Result<(), E>,
 {
-
     static TEST_CONTEXT: Lazy<Mutex<StateMachineTestContext>> = Lazy::new(|| {
         let client_path = get_ic_test_state_machine_client_path("../target");
         let env = StateMachine::new(&client_path, false);
         let canister_b_principal = deploy_canister(&env, get_canister_b_bytecode(), &());
         let canister_a_args = canister_b_principal;
-        let canister_a_principal = deploy_canister(&env, get_canister_a_bytecode(), &canister_a_args);
+        let canister_a_principal =
+            deploy_canister(&env, get_canister_a_bytecode(), &canister_a_args);
         StateMachineTestContext {
             env,
             canister_a_principal,
@@ -137,8 +161,18 @@ where
 
     f(&test_ctx)?;
 
-    reinstall_canister(&test_ctx, test_ctx.canister_a_principal, get_canister_a_bytecode(), &test_ctx.canister_a_args);
-    reinstall_canister(&test_ctx, test_ctx.canister_b_principal, get_canister_b_bytecode(), &());
+    reinstall_canister(
+        &test_ctx,
+        test_ctx.canister_a_principal,
+        get_canister_a_bytecode(),
+        &test_ctx.canister_a_args,
+    );
+    reinstall_canister(
+        &test_ctx,
+        test_ctx.canister_b_principal,
+        get_canister_b_bytecode(),
+        &(),
+    );
 
     Ok(())
 }
@@ -151,7 +185,12 @@ fn deploy_canister<T: CandidType>(env: &StateMachine, bytecode: Vec<u8>, args: &
     canister
 }
 
-fn reinstall_canister<T: CandidType>(ctx: &StateMachineTestContext, principal: Principal, bytecode: Vec<u8>, args: &T) {
+fn reinstall_canister<T: CandidType>(
+    ctx: &StateMachineTestContext,
+    principal: Principal,
+    bytecode: Vec<u8>,
+    args: &T,
+) {
     let args = encode(args);
     ctx.env
         .reinstall_canister(principal, bytecode, args, None)

@@ -8,23 +8,27 @@ thread_local! {
 }
 
 struct Config {
-    pub canister_b_principal: Principal
+    pub canister_b_principal: Principal,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self { canister_b_principal: Principal::anonymous() }
+        Self {
+            canister_b_principal: Principal::anonymous(),
+        }
     }
 }
 
 #[ic_cdk::init]
 pub fn init(canister_b_principal: Principal) {
-    CONFIG.with(|c| c.replace(Config{
-        canister_b_principal
-    }));
+    CONFIG.with(|c| {
+        c.replace(Config {
+            canister_b_principal,
+        })
+    });
 }
 
-// candid_method is used by the  candid::export_service!() macro to export the did 
+// candid_method is used by the  candid::export_service!() macro to export the did
 #[candid_method(query)]
 #[ic_cdk::query]
 fn get_counter() -> u64 {
@@ -75,7 +79,6 @@ async fn increase_counter_then_call_same_canister_then_panic() {
     panic!()
 }
 
-
 #[candid_method(update)]
 #[ic_cdk::update]
 async fn get_counter_from_another_canister() -> u64 {
@@ -83,50 +86,40 @@ async fn get_counter_from_another_canister() -> u64 {
 }
 
 async fn canister_b_get_counter() -> u64 {
-    let canister_b_principal = CONFIG.with(|c| {
-        c.borrow().canister_b_principal
-    });
+    let canister_b_principal = CONFIG.with(|c| c.borrow().canister_b_principal);
     let call_result: Result<(u64,), _> =
-    ic_cdk::call(canister_b_principal, "get_counter", ((),)).await;
+        ic_cdk::call(canister_b_principal, "get_counter", ((),)).await;
     call_result.unwrap().0
 }
 
 async fn inter_canister_get_counter_call_to_itself() -> u64 {
     let call_result: Result<(u64,), _> =
-    ic_cdk::call(ic_cdk::api::id(), "get_counter", ((),)).await;
+        ic_cdk::call(ic_cdk::api::id(), "get_counter", ((),)).await;
     call_result.unwrap().0
 }
 
-
-
 #[cfg(test)]
 mod test {
-    
+
+    use std::env;
     use std::fs::*;
     use std::io::*;
-    use std::env;
     use std::path::PathBuf;
-    
+
     fn export_candid() -> String {
         candid::export_service!();
         __export_service()
     }
-    
 
-        #[test]
-        fn export_candid_file() {
+    #[test]
+    fn export_candid_file() {
+        let dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+        let path = dir.parent().unwrap().join("target").join("canister_a.did");
+        println!("path: {}", path.to_string_lossy());
+        let mut file = File::create(path).unwrap();
+        write!(file, "{}", export_candid()).expect("Write failed.");
+    }
 
-            let dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-            let path = dir
-                .parent()
-                .unwrap()
-                .join("target")
-                .join("canister_a.did");
-            println!("path: {}", path.to_string_lossy());
-            let mut file = File::create(path).unwrap();
-            write!(file, "{}", export_candid()).expect("Write failed.");
-        }
-        
     // use ic_exports::ic_kit::{mock_principals::alice, MockContext};
 
     // use super::*;

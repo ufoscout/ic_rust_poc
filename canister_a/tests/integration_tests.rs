@@ -68,9 +68,6 @@ fn should_commit_data_on_inter_canister_call_to_itself_before_panic() {
     .unwrap();
 }
 
-
-
-
 #[test]
 fn should_get_counter_from_another_canister() {
     with_state_machine_context::<_, ()>(|ctx| {

@@ -7,7 +7,7 @@ thread_local! {
 }
 
 /// Get the value of the counter.
-// candid_method is used by the  candid::export_service!() macro to export the did 
+// candid_method is used by the  candid::export_service!() macro to export the did
 #[candid_method(query)]
 #[ic_cdk::query]
 fn get_counter() -> u64 {
@@ -30,25 +30,19 @@ fn export_candid() -> String {
 #[cfg(test)]
 mod test {
 
+    use std::env;
     use std::fs::*;
     use std::io::*;
-    use std::env;
     use std::path::PathBuf;
 
     use super::*;
 
-        #[test]
-        fn export_candid_file() {
-
-            let dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-            let path = dir
-                .parent()
-                .unwrap()
-                .join("target")
-                .join("canister_b.did");
-            println!("path: {}", path.to_string_lossy());
-            let mut file = File::create(path).unwrap();
-            write!(file, "{}", export_candid()).expect("Write failed.");
-        }
-        
+    #[test]
+    fn export_candid_file() {
+        let dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+        let path = dir.parent().unwrap().join("target").join("canister_b.did");
+        println!("path: {}", path.to_string_lossy());
+        let mut file = File::create(path).unwrap();
+        write!(file, "{}", export_candid()).expect("Write failed.");
+    }
 }

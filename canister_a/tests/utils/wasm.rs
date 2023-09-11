@@ -20,11 +20,7 @@ pub fn get_canister_b_bytecode() -> Vec<u8> {
 
 fn load_canister_bytecode(wasm_name: &str) -> Vec<u8> {
     let dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
-    let path = dir
-        .parent()
-        .unwrap()
-        .join("target")
-        .join(wasm_name);
+    let path = dir.parent().unwrap().join("target").join(wasm_name);
 
     let mut f = File::open(path).expect("File does not exists");
 
