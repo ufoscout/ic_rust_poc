@@ -1,0 +1,24 @@
+[package]
+name = "canister_a"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+candid = { worspace = true }
+ic-cdk = { worspace = true }
+serde = { worspace = true }
+
+[dev-dependencies]
+ic-test-state-machine-client = { worspace = true }
+futures = { worspace = true }
+tokio = { worspace = true }
+flate2 = { worspace = true }
+log = { worspace = true }
+once_cell = { worspace = true }
+reqwest = { workspace = true, features = [
+  "blocking",
+  "gzip",
+  "json",
+  "rustls-tls",
+  "trust-dns",
+] }

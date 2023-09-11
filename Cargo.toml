@@ -1,0 +1,22 @@
+[workspace]
+members = [
+  "canister_a",
+]
+
+[workspace.package]
+license = "MIT"
+version = "0.0.1"
+edition = "2021"
+
+[workspace.dependencies]
+candid = { version = "0.9" }
+ic-cdk = "0.10"
+ic-test-state-machine-client = "3"
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0.37"
+futures = { version = "0.3", default-features = false }
+tokio = { version = "1", features = ["rt", "macros"] }
+flate2 = "1"
+log = "0.4"
+once_cell = "1"
+reqwest = { version = "0.11", default-features = false }

@@ -1,0 +1,9 @@
+{
+  "canisters": {
+    "canister_a": {
+      "package": "canister_a",
+      "candid": "target/canister_a.did",
+      "type": "rust"
+    }
+  }
+}
