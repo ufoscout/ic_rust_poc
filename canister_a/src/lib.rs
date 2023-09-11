@@ -24,7 +24,6 @@ pub fn init(canister_b_principal: Principal) {
     }));
 }
 
-/// Get the value of the counter.
 // candid_method is used by the  candid::export_service!() macro to export the did 
 #[candid_method(query)]
 #[ic_cdk::query]
@@ -32,7 +31,6 @@ fn get_counter() -> u64 {
     COUNTER.with(|c| (*c.borrow()).clone())
 }
 
-/// Increment the value of the counter.
 #[candid_method(update)]
 #[ic_cdk::update]
 fn increase_counter() {
@@ -41,7 +39,50 @@ fn increase_counter() {
 
 #[candid_method(update)]
 #[ic_cdk::update]
+async fn increase_counter_panic() {
+    COUNTER.with(|counter| *counter.borrow_mut() += 1);
+    panic!()
+}
+
+#[candid_method(update)]
+#[ic_cdk::update]
+async fn increase_counter_then_call_async_fn_then_panic() {
+    COUNTER.with(|counter| *counter.borrow_mut() += 1);
+    do_something_async().await;
+    COUNTER.with(|counter| *counter.borrow_mut() += 1);
+    panic!()
+}
+
+async fn do_something_async() {
+    println!("do_something_async")
+}
+
+#[candid_method(update)]
+#[ic_cdk::update]
+async fn increase_counter_then_call_another_canister_then_panic() {
+    COUNTER.with(|counter| *counter.borrow_mut() += 1);
+    canister_b_get_counter().await;
+    COUNTER.with(|counter| *counter.borrow_mut() += 1);
+    panic!()
+}
+
+#[candid_method(update)]
+#[ic_cdk::update]
+async fn increase_counter_then_call_same_canister_then_panic() {
+    COUNTER.with(|counter| *counter.borrow_mut() += 1);
+    inter_canister_get_counter_call_to_itself().await;
+    COUNTER.with(|counter| *counter.borrow_mut() += 1);
+    panic!()
+}
+
+
+#[candid_method(update)]
+#[ic_cdk::update]
 async fn get_counter_from_another_canister() -> u64 {
+    canister_b_get_counter().await
+}
+
+async fn canister_b_get_counter() -> u64 {
     let canister_b_principal = CONFIG.with(|c| {
         c.borrow().canister_b_principal
     });
@@ -49,6 +90,14 @@ async fn get_counter_from_another_canister() -> u64 {
     ic_cdk::call(canister_b_principal, "get_counter", ((),)).await;
     call_result.unwrap().0
 }
+
+async fn inter_canister_get_counter_call_to_itself() -> u64 {
+    let call_result: Result<(u64,), _> =
+    ic_cdk::call(ic_cdk::api::id(), "get_counter", ((),)).await;
+    call_result.unwrap().0
+}
+
+
 
 #[cfg(test)]
 mod test {

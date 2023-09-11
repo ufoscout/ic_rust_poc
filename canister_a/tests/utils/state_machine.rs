@@ -31,17 +31,17 @@ pub struct StateMachineTestContext {
 impl StateMachineTestContext {
     pub fn query_as<Result, T: CandidType>(
         &self,
-        sender: Principal,
         canister_id: Principal,
+        sender: Principal,
         method: &str,
-        payload: &T,
+        args: &T,
     ) -> Result
     where
         for<'a> Result: CandidType + Deserialize<'a>,
     {
         let res = match self
             .env
-            .query_call(canister_id, sender, method, encode(payload))
+            .query_call(canister_id, sender, method, encode(args))
             .unwrap()
         {
             WasmResult::Reply(bytes) => bytes,
@@ -53,17 +53,17 @@ impl StateMachineTestContext {
 
     pub fn update_call_as<Result, T: CandidType>(
         &self,
-        sender: Principal,
         canister_id: Principal,
+        sender: Principal,
         method: &str,
-        payload: &T,
+        args: &T,
     ) -> Result
     where
         for<'a> Result: CandidType + Deserialize<'a>,
     {
         let res = match self
             .env
-            .update_call(canister_id, sender, method, encode(payload))
+            .update_call(canister_id, sender, method, encode(args))
             .unwrap()
         {
             WasmResult::Reply(bytes) => bytes,
@@ -75,15 +75,42 @@ impl StateMachineTestContext {
 
     pub fn get_counter(&self, sender: Principal) -> u64 {
         let args = &();
-        let res = self.query_as(sender, self.canister_a_principal, "get_counter", args);
-        res
+        self.query_as(self.canister_a_principal, sender,  "get_counter", args)
     }
 
     pub fn get_counter_from_another_canister(&self, sender: Principal) -> u64 {
         let args = &();
-        let res = self.update_call_as(sender, self.canister_a_principal, "get_counter_from_another_canister", args);
-        res
-    }    
+        self.update_call_as(self.canister_a_principal, sender,"get_counter_from_another_canister", args)
+    }  
+
+    pub fn increase_counter(&self, sender: Principal) {
+        let args = &();
+        self.update_call_as(self.canister_a_principal, sender, "increase_counter", args)
+    }
+
+    pub fn increase_counter_panic(&self, sender: Principal) {
+        let args = &();
+        let result = self.env.update_call(self.canister_a_principal, sender, "increase_counter_panic", encode(args));
+        assert!(result.is_err())
+    }  
+
+    pub fn increase_counter_then_call_async_fn_then_panic(&self, sender: Principal) {
+        let args = &();
+        let result = self.env.update_call(self.canister_a_principal, sender, "increase_counter_then_call_async_fn_then_panic", encode(args));
+        assert!(result.is_err())
+    }  
+    
+    pub fn increase_counter_then_call_another_canister_then_panic(&self, sender: Principal) {
+        let args = &();
+        let result = self.env.update_call(self.canister_a_principal, sender, "increase_counter_then_call_another_canister_then_panic", encode(args));
+        assert!(result.is_err())
+    } 
+
+    pub fn increase_counter_then_call_same_canister_then_panic(&self, sender: Principal) {
+        let args = &();
+        let result = self.env.update_call(self.canister_a_principal, sender, "increase_counter_then_call_same_canister_then_panic", encode(args));
+        assert!(result.is_err())
+    } 
 
 }
 
