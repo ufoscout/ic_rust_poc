@@ -29,58 +29,58 @@ pub struct StateMachineTestContext {
 }
 
 impl StateMachineTestContext {
-    pub fn query_as<Result>(
+    pub fn query_as<Result, T: CandidType>(
         &self,
         sender: Principal,
         canister_id: Principal,
         method: &str,
-        payload: Vec<u8>,
+        payload: &T,
     ) -> Result
     where
         for<'a> Result: CandidType + Deserialize<'a>,
     {
         let res = match self
             .env
-            .query_call(canister_id, sender, method, payload)
+            .query_call(canister_id, sender, method, encode(payload))
             .unwrap()
         {
             WasmResult::Reply(bytes) => bytes,
             WasmResult::Reject(e) => panic!("Unexpected reject: {:?}", e),
         };
 
-        Decode!(&res, Result).expect("failed to decode item from candid")
+        decode(&res)
     }
 
-    pub fn update_call_as<Result>(
+    pub fn update_call_as<Result, T: CandidType>(
         &self,
         sender: Principal,
         canister_id: Principal,
         method: &str,
-        payload: Vec<u8>,
+        payload: &T,
     ) -> Result
     where
         for<'a> Result: CandidType + Deserialize<'a>,
     {
         let res = match self
             .env
-            .update_call(canister_id, sender, method, payload)
+            .update_call(canister_id, sender, method, encode(payload))
             .unwrap()
         {
             WasmResult::Reply(bytes) => bytes,
             WasmResult::Reject(e) => panic!("Unexpected reject: {:?}", e),
         };
 
-        Decode!(&res, Result).expect("failed to decode item from candid")
+        decode(&res)
     }
 
     pub fn get_counter(&self, sender: Principal) -> u64 {
-        let args = Encode!(&()).unwrap();
+        let args = &();
         let res = self.query_as(sender, self.canister_a_principal, "get_counter", args);
         res
     }
 
     pub fn get_counter_from_another_canister(&self, sender: Principal) -> u64 {
-        let args = Encode!(&()).unwrap();
+        let args = &();
         let res = self.update_call_as(sender, self.canister_a_principal, "get_counter_from_another_canister", args);
         res
     }    
