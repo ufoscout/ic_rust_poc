@@ -1,9 +1,27 @@
 use std::cell::RefCell;
 
-use candid::candid_method;
+use candid::{candid_method, Principal};
 
 thread_local! {
     static COUNTER: RefCell<u64> = RefCell::new(0);
+    static CONFIG: RefCell<Config> = RefCell::new(Config::default());
+}
+
+struct Config {
+    pub canister_b_principal: Principal
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self { canister_b_principal: Principal::anonymous() }
+    }
+}
+
+#[ic_cdk::init]
+pub fn init(canister_b_principal: Principal) {
+    CONFIG.with(|c| c.replace(Config{
+        canister_b_principal
+    }));
 }
 
 /// Get the value of the counter.
@@ -17,25 +35,34 @@ fn get_counter() -> u64 {
 /// Increment the value of the counter.
 #[candid_method(update)]
 #[ic_cdk::update]
-fn inc() {
+fn increase_counter() {
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
 }
 
-#[cfg(test)]
-fn export_candid() -> String {
-    candid::export_service!();
-    __export_service()
+#[candid_method(update)]
+#[ic_cdk::update]
+async fn get_counter_from_another_canister() -> u64 {
+    let canister_b_principal = CONFIG.with(|c| {
+        c.borrow().canister_b_principal
+    });
+    let call_result: Result<(u64,), _> =
+    ic_cdk::call(canister_b_principal, "get_counter", ((),)).await;
+    call_result.unwrap().0
 }
 
 #[cfg(test)]
 mod test {
-
+    
     use std::fs::*;
     use std::io::*;
     use std::env;
     use std::path::PathBuf;
-
-    use super::*;
+    
+    fn export_candid() -> String {
+        candid::export_service!();
+        __export_service()
+    }
+    
 
         #[test]
         fn export_candid_file() {

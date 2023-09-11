@@ -7,23 +7,25 @@ use ic_test_state_machine_client::{StateMachine, WasmResult};
 use once_cell::sync::Lazy;
 
 use crate::utils::state_machine_client::get_ic_test_state_machine_client_path;
-use crate::utils::wasm::get_canister_a_bytecode;
+use crate::utils::wasm::{get_canister_a_bytecode, get_canister_b_bytecode};
 
 pub fn alice() -> Principal {
     Principal::from_text("sgymv-uiaaa-aaaaa-aaaia-cai").unwrap()
 }
 
-pub fn bob() -> Principal {
-    Principal::from_text("ai7t5-aibaq-aaaaa-aaaaa-c").unwrap()
-}
+// pub fn bob() -> Principal {
+//     Principal::from_text("ai7t5-aibaq-aaaaa-aaaaa-c").unwrap()
+// }
 
-pub fn john() -> Principal {
-    Principal::from_text("hozae-racaq-aaaaa-aaaaa-c").unwrap()
-}
+// pub fn john() -> Principal {
+//     Principal::from_text("hozae-racaq-aaaaa-aaaaa-c").unwrap()
+// }
 
 pub struct StateMachineTestContext {
     pub env: StateMachine,
     pub canister_a_principal: Principal,
+    pub canister_a_args: Principal,
+    pub canister_b_principal: Principal,
 }
 
 impl StateMachineTestContext {
@@ -77,6 +79,12 @@ impl StateMachineTestContext {
         res
     }
 
+    pub fn get_counter_from_another_canister(&self, sender: Principal) -> u64 {
+        let args = Encode!(&()).unwrap();
+        let res = self.update_call_as(sender, self.canister_a_principal, "get_counter_from_another_canister", args);
+        res
+    }    
+
 }
 
 pub fn with_state_machine_context<'a, F, E>(f: F) -> Result<(), E>
@@ -87,10 +95,14 @@ where
     static TEST_CONTEXT: Lazy<Mutex<StateMachineTestContext>> = Lazy::new(|| {
         let client_path = get_ic_test_state_machine_client_path("../target");
         let env = StateMachine::new(&client_path, false);
-        let dummy_canister = deploy_canister_a(&env);
+        let canister_b_principal = deploy_canister(&env, get_canister_b_bytecode(), &());
+        let canister_a_args = canister_b_principal;
+        let canister_a_principal = deploy_canister(&env, get_canister_a_bytecode(), &canister_a_args);
         StateMachineTestContext {
             env,
-            canister_a_principal: dummy_canister,
+            canister_a_principal,
+            canister_a_args,
+            canister_b_principal,
         }
         .into()
     });
@@ -98,31 +110,31 @@ where
 
     f(&test_ctx)?;
 
-    reinstall_canister_a(&test_ctx);
+    reinstall_canister(&test_ctx, test_ctx.canister_a_principal, get_canister_a_bytecode(), &test_ctx.canister_a_args);
+    reinstall_canister(&test_ctx, test_ctx.canister_b_principal, get_canister_b_bytecode(), &());
 
     Ok(())
 }
 
-fn deploy_canister_a(env: &StateMachine) -> Principal {
-    let dummy_wasm = get_canister_a_bytecode();
-    eprintln!("Creating dummy canister");
-
-    let args = Encode!(&()).unwrap();
-
+fn deploy_canister<T: CandidType>(env: &StateMachine, bytecode: Vec<u8>, args: &T) -> Principal {
+    let args = encode(args);
     let canister = env.create_canister(None);
     env.add_cycles(canister, 10_u128.pow(12));
-    env.install_canister(canister, dummy_wasm.to_vec(), args, None);
-
+    env.install_canister(canister, bytecode, args, None);
     canister
 }
 
-pub fn reinstall_canister_a(ctx: &StateMachineTestContext) {
-    let args = Encode!(&()).unwrap();
-
-    let dummy_wasm = get_canister_a_bytecode();
-
+fn reinstall_canister<T: CandidType>(ctx: &StateMachineTestContext, principal: Principal, bytecode: Vec<u8>, args: &T) {
+    let args = encode(args);
     ctx.env
-        .reinstall_canister(ctx.canister_a_principal, dummy_wasm, args, None)
+        .reinstall_canister(principal, bytecode, args, None)
         .unwrap();
+}
 
+pub fn encode<T: CandidType>(item: &T) -> Vec<u8> {
+    Encode!(item).expect("failed to encode item to candid")
+}
+
+pub fn decode<'a, T: CandidType + Deserialize<'a>>(bytes: &'a [u8]) -> T {
+    Decode!(bytes, T).expect("failed to decode item from candid")
 }

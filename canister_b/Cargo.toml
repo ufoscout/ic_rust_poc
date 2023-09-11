@@ -1,0 +1,9 @@
+[package]
+name = "canister_b"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+candid = { worspace = true }
+ic-cdk = { worspace = true }
+serde = { worspace = true }

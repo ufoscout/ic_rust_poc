@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "canister_a",
+  "canister_b",
 ]
 
 [workspace.package]
