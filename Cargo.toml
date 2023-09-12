@@ -3,6 +3,7 @@ members = [
   "canister_a",
   "canister_b",
 ]
+resolver = "2"
 
 [workspace.package]
 license = "MIT"
@@ -21,3 +22,8 @@ flate2 = "1"
 log = "0.4"
 once_cell = "1"
 reqwest = { version = "0.11", default-features = false }
+
+[profile.release]
+# wasm32 defaults to `panic=abort`. As it is the only supported mode, setting it manually to `unwind` has no effect for wasm32 builds
+panic = "unwind"
+debug = false

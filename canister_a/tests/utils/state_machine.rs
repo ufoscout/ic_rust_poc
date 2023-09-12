@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use candid::{CandidType, Deserialize, Principal};
 use candid::{Decode, Encode};
 
-use ic_test_state_machine_client::{StateMachine, WasmResult};
+use ic_test_state_machine_client::{StateMachine, WasmResult, UserError};
 use once_cell::sync::Lazy;
 
 use crate::utils::state_machine_client::get_ic_test_state_machine_client_path;
@@ -93,48 +93,54 @@ impl StateMachineTestContext {
         self.update_call_as(self.canister_a_principal, sender, "increase_counter", args)
     }
 
-    pub fn increase_counter_panic(&self, sender: Principal) {
+    pub fn catch_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
         let args = &();
-        let result = self.env.update_call(
+        self.env.query_call(
+            self.canister_a_principal,
+            sender,
+            "catch_panic",
+            encode(args),
+        )
+    }
+
+    pub fn increase_counter_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
+        let args = &();
+        self.env.update_call(
             self.canister_a_principal,
             sender,
             "increase_counter_panic",
             encode(args),
-        );
-        assert!(result.is_err())
+        )
     }
 
-    pub fn increase_counter_then_call_async_fn_then_panic(&self, sender: Principal) {
+    pub fn increase_counter_then_call_async_fn_then_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
         let args = &();
-        let result = self.env.update_call(
+        self.env.update_call(
             self.canister_a_principal,
             sender,
             "increase_counter_then_call_async_fn_then_panic",
             encode(args),
-        );
-        assert!(result.is_err())
+        )
     }
 
-    pub fn increase_counter_then_call_another_canister_then_panic(&self, sender: Principal) {
+    pub fn increase_counter_then_call_another_canister_then_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
         let args = &();
-        let result = self.env.update_call(
+        self.env.update_call(
             self.canister_a_principal,
             sender,
             "increase_counter_then_call_another_canister_then_panic",
             encode(args),
-        );
-        assert!(result.is_err())
+        )
     }
 
-    pub fn increase_counter_then_call_same_canister_then_panic(&self, sender: Principal) {
+    pub fn increase_counter_then_call_same_canister_then_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
         let args = &();
-        let result = self.env.update_call(
+        self.env.update_call(
             self.canister_a_principal,
             sender,
             "increase_counter_then_call_same_canister_then_panic",
             encode(args),
-        );
-        assert!(result.is_err())
+        )
     }
 }
 

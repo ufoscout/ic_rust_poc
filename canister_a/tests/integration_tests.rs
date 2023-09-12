@@ -28,7 +28,7 @@ fn should_increase_counter() {
 fn should_not_increase_counter_on_panics() {
     with_state_machine_context::<_, ()>(|ctx| {
         assert_eq!(0, ctx.get_counter(alice()));
-        ctx.increase_counter_panic(alice());
+        assert!(ctx.increase_counter_panic(alice()).is_err());
         assert_eq!(0, ctx.get_counter(alice()));
         Ok(())
     })
@@ -39,7 +39,7 @@ fn should_not_increase_counter_on_panics() {
 fn should_not_commit_data_on_await_point_before_panic() {
     with_state_machine_context::<_, ()>(|ctx| {
         assert_eq!(0, ctx.get_counter(alice()));
-        ctx.increase_counter_then_call_async_fn_then_panic(alice());
+        assert!(ctx.increase_counter_then_call_async_fn_then_panic(alice()).is_err());
         assert_eq!(0, ctx.get_counter(alice()));
         Ok(())
     })
@@ -50,7 +50,7 @@ fn should_not_commit_data_on_await_point_before_panic() {
 fn should_commit_data_on_inter_canister_call_point_before_panic() {
     with_state_machine_context::<_, ()>(|ctx| {
         assert_eq!(0, ctx.get_counter(alice()));
-        ctx.increase_counter_then_call_another_canister_then_panic(alice());
+        assert!(ctx.increase_counter_then_call_another_canister_then_panic(alice()).is_err());
         assert_eq!(1, ctx.get_counter(alice()));
         Ok(())
     })
@@ -61,7 +61,7 @@ fn should_commit_data_on_inter_canister_call_point_before_panic() {
 fn should_commit_data_on_inter_canister_call_to_itself_before_panic() {
     with_state_machine_context::<_, ()>(|ctx| {
         assert_eq!(0, ctx.get_counter(alice()));
-        ctx.increase_counter_then_call_same_canister_then_panic(alice());
+        assert!(ctx.increase_counter_then_call_same_canister_then_panic(alice()).is_err());
         assert_eq!(1, ctx.get_counter(alice()));
         Ok(())
     })
@@ -72,6 +72,15 @@ fn should_commit_data_on_inter_canister_call_to_itself_before_panic() {
 fn should_get_counter_from_another_canister() {
     with_state_machine_context::<_, ()>(|ctx| {
         assert_eq!(999_999_999, ctx.get_counter_from_another_canister(alice()));
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
+fn should_fail_to_catch_a_panic_in_wasm32() {
+    with_state_machine_context::<_, ()>(|ctx| {
+        assert!(ctx.catch_panic(alice()).is_err());
         Ok(())
     })
     .unwrap();
