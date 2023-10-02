@@ -1,6 +1,9 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, collections::HashMap};
 
-use candid::{candid_method, Principal};
+use candid::{candid_method, CandidType, Deserialize, Principal};
+use request::{HttpRequest, HttpResponse};
+
+mod request;
 
 thread_local! {
     static COUNTER: RefCell<u64> = RefCell::new(0);
@@ -19,11 +22,17 @@ impl Default for Config {
     }
 }
 
+#[derive(Debug, Clone, CandidType, Deserialize)]
+pub struct InitArgs {
+    pub canister_b_principal: Principal,
+}
+
+#[candid_method(init)]
 #[ic_cdk::init]
-pub fn init(canister_b_principal: Principal) {
+fn init(arg: InitArgs) {
     CONFIG.with(|c| {
         c.replace(Config {
-            canister_b_principal,
+            canister_b_principal: arg.canister_b_principal,
         })
     });
     set_panic_hook()
@@ -45,7 +54,6 @@ fn increase_counter() {
 #[candid_method(update)]
 #[ic_cdk::update]
 async fn increase_counter_panic() {
-
     // The panic will revert this counter increase
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
     panic!()
@@ -54,10 +62,9 @@ async fn increase_counter_panic() {
 #[candid_method(update)]
 #[ic_cdk::update]
 async fn increase_counter_then_call_async_fn_then_panic() {
-
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
 
-    // This calls an async method but it DOES NOT 
+    // This calls an async method but it DOES NOT
     // trigger the consensus and the previous counter increase is NOT committed
     do_something_async().await;
 
@@ -65,11 +72,9 @@ async fn increase_counter_then_call_async_fn_then_panic() {
     panic!()
 }
 
-
 #[candid_method(update)]
 #[ic_cdk::update]
 async fn increase_counter_then_call_another_canister_then_panic() {
-
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
 
     // This performs a intercanister call to another canister,
@@ -83,9 +88,8 @@ async fn increase_counter_then_call_another_canister_then_panic() {
 #[candid_method(update)]
 #[ic_cdk::update]
 async fn increase_counter_then_call_same_canister_then_panic() {
-    
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
-    
+
     // This performs a intercanister call to itself,
     // This triggers the consensus and the previous counter increase is committed
     inter_canister_get_counter_call_to_itself().await;
@@ -103,8 +107,7 @@ async fn get_counter_from_another_canister() -> u64 {
 #[candid_method(query)]
 #[ic_cdk::query]
 fn catch_panic() -> String {
-
-    // This will NOT catch the panic. 
+    // This will NOT catch the panic.
     // wasm32-unknown-unknown is panic="abort" by default
     // even setting `panic = "unwind"` in Cargo.toml has no effect.
     let res = std::panic::catch_unwind(|| panic!());
@@ -112,6 +115,34 @@ fn catch_panic() -> String {
     match res {
         Ok(_) => "success".to_string(),
         Err(_) => "error".to_string(),
+    }
+}
+
+// This handles HTTP requests.
+// If the response contains upgrade:true the call is upgraded to an update one
+// and the http_request_update method is called by the icx-proxy.
+// WARN: headers and body cannot be customized!!
+#[candid_method(query)]
+#[ic_cdk::query]
+fn http_request(req: HttpRequest) -> HttpResponse {
+    ic_cdk::println!("http_request called with: {:?}", req);
+    HttpResponse {
+        status_code: 204,
+        headers: HashMap::from([("custom_header", "custom_value")]),
+        body: vec![1, 2, 3, 4],
+        upgrade: Some(true),
+    }
+}
+
+#[candid_method(update)]
+#[ic_cdk::update]
+pub fn http_request_update(req: HttpRequest) -> HttpResponse {
+    ic_cdk::println!("http_request_update called with: {:?}", req);
+    HttpResponse {
+        status_code: 400,
+        headers: HashMap::new(),
+        body: vec![],
+        upgrade: None,
     }
 }
 
@@ -124,7 +155,7 @@ async fn canister_b_get_counter() -> u64 {
 
 async fn inter_canister_get_counter_call_to_itself() -> u64 {
     let call_result: Result<(u64,), _> =
-    ic_cdk::call(ic_cdk::api::id(), "get_counter", ((),)).await;
+        ic_cdk::call(ic_cdk::api::id(), "get_counter", ((),)).await;
     call_result.unwrap().0
 }
 
@@ -135,7 +166,6 @@ async fn do_something_async() {
 /// Sets a custom panic hook
 pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(|info| {
-        
         let (file, line, col) = if let Some(location) = info.location() {
             let file = location.file().to_owned();
             let line = location.line();
@@ -145,7 +175,6 @@ pub fn set_panic_hook() {
             ("unknown".to_owned(), 0, 0)
         };
 
-        
         let msg = match info.payload().downcast_ref::<&'static str>() {
             Some(s) => *s,
             None => match info.payload().downcast_ref::<String>() {
@@ -153,20 +182,20 @@ pub fn set_panic_hook() {
                 None => "Box<Any>",
             },
         };
-        
+
         let err_info = format!("Panicked at '{}', {}:{}:{}", msg, file, line, col);
 
         ic_cdk::println!("------------------------");
         ic_cdk::println!("PANIC!");
         ic_cdk::println!("{}", err_info);
         ic_cdk::println!("------------------------");
-
     }));
 }
 
 #[cfg(test)]
 mod test {
-    
+
+    use super::*;
     use std::env;
     use std::fs::*;
     use std::io::*;
@@ -187,6 +216,4 @@ mod test {
         let mut file = File::create(path).unwrap();
         write!(file, "{}", export_candid()).expect("Write failed.");
     }
-
-
 }

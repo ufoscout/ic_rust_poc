@@ -3,7 +3,8 @@ use std::sync::Mutex;
 use candid::{CandidType, Deserialize, Principal};
 use candid::{Decode, Encode};
 
-use ic_test_state_machine_client::{StateMachine, WasmResult, UserError};
+use canister_a::InitArgs;
+use ic_test_state_machine_client::{StateMachine, UserError, WasmResult};
 use once_cell::sync::Lazy;
 
 use crate::utils::state_machine_client::get_ic_test_state_machine_client_path;
@@ -24,7 +25,7 @@ pub fn alice() -> Principal {
 pub struct StateMachineTestContext {
     pub env: StateMachine,
     pub canister_a_principal: Principal,
-    pub canister_a_args: Principal,
+    pub canister_a_args: InitArgs,
     pub canister_b_principal: Principal,
 }
 
@@ -113,7 +114,10 @@ impl StateMachineTestContext {
         )
     }
 
-    pub fn increase_counter_then_call_async_fn_then_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
+    pub fn increase_counter_then_call_async_fn_then_panic(
+        &self,
+        sender: Principal,
+    ) -> Result<WasmResult, UserError> {
         let args = &();
         self.env.update_call(
             self.canister_a_principal,
@@ -123,7 +127,10 @@ impl StateMachineTestContext {
         )
     }
 
-    pub fn increase_counter_then_call_another_canister_then_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
+    pub fn increase_counter_then_call_another_canister_then_panic(
+        &self,
+        sender: Principal,
+    ) -> Result<WasmResult, UserError> {
         let args = &();
         self.env.update_call(
             self.canister_a_principal,
@@ -133,7 +140,10 @@ impl StateMachineTestContext {
         )
     }
 
-    pub fn increase_counter_then_call_same_canister_then_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
+    pub fn increase_counter_then_call_same_canister_then_panic(
+        &self,
+        sender: Principal,
+    ) -> Result<WasmResult, UserError> {
         let args = &();
         self.env.update_call(
             self.canister_a_principal,
@@ -152,7 +162,9 @@ where
         let client_path = get_ic_test_state_machine_client_path("../target");
         let env = StateMachine::new(&client_path, false);
         let canister_b_principal = deploy_canister(&env, get_canister_b_bytecode(), &());
-        let canister_a_args = canister_b_principal;
+        let canister_a_args = InitArgs {
+            canister_b_principal,
+        };
         let canister_a_principal =
             deploy_canister(&env, get_canister_a_bytecode(), &canister_a_args);
         StateMachineTestContext {
