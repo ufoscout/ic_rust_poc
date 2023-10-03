@@ -34,5 +34,5 @@ start_icx() {
 start_canisters
 
 # icx proxy is needed to call the http_request endpoint from curl
-start_icx
+# start_icx
 

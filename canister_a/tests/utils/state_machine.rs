@@ -158,41 +158,42 @@ pub fn with_state_machine_context<'a, F, E>(f: F) -> Result<(), E>
 where
     F: FnOnce(&StateMachineTestContext) -> Result<(), E>,
 {
-    static TEST_CONTEXT: Lazy<Mutex<StateMachineTestContext>> = Lazy::new(|| {
-        let client_path = get_ic_test_state_machine_client_path("../target");
-        let env = StateMachine::new(&client_path, false);
-        let canister_b_principal = deploy_canister(&env, get_canister_b_bytecode(), &());
-        let canister_a_args = InitArgs {
-            canister_b_principal,
-        };
-        let canister_a_principal =
-            deploy_canister(&env, get_canister_a_bytecode(), &canister_a_args);
-        StateMachineTestContext {
-            env,
-            canister_a_principal,
-            canister_a_args,
-            canister_b_principal,
-        }
-        .into()
-    });
-    let test_ctx = TEST_CONTEXT.lock().unwrap();
-
-    f(&test_ctx)?;
-
-    reinstall_canister(
-        &test_ctx,
-        test_ctx.canister_a_principal,
-        get_canister_a_bytecode(),
-        &test_ctx.canister_a_args,
-    );
-    reinstall_canister(
-        &test_ctx,
-        test_ctx.canister_b_principal,
-        get_canister_b_bytecode(),
-        &(),
-    );
-
-    Ok(())
+    thread_local! {
+        static TEST_CONTEXT: Lazy<StateMachineTestContext> = Lazy::new(|| {
+            let client_path = get_ic_test_state_machine_client_path("../target");
+            let env = StateMachine::new(&client_path, false);
+            let canister_b_principal = deploy_canister(&env, get_canister_b_bytecode(), &());
+            let canister_a_args = InitArgs {
+                canister_b_principal,
+            };
+            let canister_a_principal =
+                deploy_canister(&env, get_canister_a_bytecode(), &canister_a_args);
+            StateMachineTestContext {
+                env,
+                canister_a_principal,
+                canister_a_args,
+                canister_b_principal,
+            }
+            .into()
+        });
+    }
+    TEST_CONTEXT.with(|test_ctx| {
+        // Reinstalling a canister is a fast operation and ensure a clean state
+        // before the test execution
+        reinstall_canister(
+            &test_ctx,
+            test_ctx.canister_a_principal,
+            get_canister_a_bytecode(),
+            &test_ctx.canister_a_args,
+        );
+        reinstall_canister(
+            &test_ctx,
+            test_ctx.canister_b_principal,
+            get_canister_b_bytecode(),
+            &(),
+        );
+       f(&test_ctx)
+    })
 }
 
 fn deploy_canister<T: CandidType>(env: &StateMachine, bytecode: Vec<u8>, args: &T) -> Principal {
