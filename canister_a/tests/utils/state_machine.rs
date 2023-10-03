@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 use candid::{CandidType, Deserialize, Principal};
 use candid::{Decode, Encode};
 
