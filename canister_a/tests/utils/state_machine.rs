@@ -190,7 +190,7 @@ where
             get_canister_b_bytecode(),
             &(),
         );
-       f(&test_ctx)
+        f(&test_ctx)
     })
 }
 
