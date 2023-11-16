@@ -3,6 +3,7 @@ use std::{cell::RefCell, collections::HashMap};
 use candid::{candid_method, CandidType, Deserialize, Principal};
 use request::{HttpRequest, HttpResponse};
 
+mod inspect_message;
 mod request;
 
 thread_local! {
@@ -116,6 +117,12 @@ fn catch_panic() -> String {
         Ok(_) => "success".to_string(),
         Err(_) => "error".to_string(),
     }
+}
+// It should not be possible to call this method
+#[candid_method(update)]
+#[ic_cdk::update]
+fn protected_by_inspect_message() -> bool {
+    true
 }
 
 // This handles HTTP requests.

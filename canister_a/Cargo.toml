@@ -9,12 +9,11 @@ ic-cdk = { worspace = true }
 serde = { worspace = true }
 
 [dev-dependencies]
-ic-test-state-machine-client = { worspace = true }
-futures = { worspace = true }
-tokio = { worspace = true }
 flate2 = { worspace = true }
+futures = { worspace = true }
 log = { worspace = true }
 once_cell = { worspace = true }
+pocket-ic = { worspace = true }
 reqwest = { workspace = true, features = [
   "blocking",
   "gzip",
@@ -22,3 +21,4 @@ reqwest = { workspace = true, features = [
   "rustls-tls",
   "trust-dns",
 ] }
+tokio = { worspace = true }

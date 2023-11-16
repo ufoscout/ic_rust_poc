@@ -1,3 +1,3 @@
-pub mod state_machine;
-pub mod state_machine_client;
+pub mod pocket_ic_test_context;
+pub mod pocket_ic_client;
 pub mod wasm;
