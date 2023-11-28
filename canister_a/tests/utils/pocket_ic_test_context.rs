@@ -2,7 +2,7 @@ use candid::{CandidType, Deserialize, Principal};
 use candid::{Decode, Encode};
 
 use canister_a::InitArgs;
-use pocket_ic::{PocketIc, WasmResult, UserError};
+use pocket_ic::{PocketIc, UserError, WasmResult};
 
 use crate::utils::pocket_ic_client::get_pocket_ic_client;
 use crate::utils::wasm::{get_canister_a_bytecode, get_canister_b_bytecode};
@@ -142,10 +142,7 @@ impl PocketIcTestContext {
         )
     }
 
-    pub fn protected_by_inspect_message(
-        &self,
-        sender: Principal,
-    ) -> Result<WasmResult, UserError> {
+    pub fn protected_by_inspect_message(&self, sender: Principal) -> Result<WasmResult, UserError> {
         let args = &();
         self.client.update_call(
             self.canister_a_principal,
@@ -168,7 +165,7 @@ where
     let canister_a_principal =
         deploy_canister(&client, get_canister_a_bytecode(), &canister_a_args);
 
-        f(&PocketIcTestContext {
+    f(&PocketIcTestContext {
         client: client,
         canister_a_principal,
         canister_a_args,

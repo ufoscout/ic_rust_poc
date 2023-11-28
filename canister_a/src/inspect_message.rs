@@ -5,15 +5,11 @@ fn inspect_messages() {
     inspect_message_impl()
 }
 
-
 fn inspect_message_impl() {
-
     let method = ic_cdk::api::call::method_name();
 
     let check_result = match method.as_str() {
-        "protected_by_inspect_message" => {
-            Err("NotAllowed")
-        }
+        "protected_by_inspect_message" => Err("NotAllowed"),
         _ => Ok(()),
     };
 
