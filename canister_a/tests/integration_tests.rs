@@ -95,9 +95,16 @@ fn should_fail_to_catch_a_panic_in_wasm32() {
 #[test]
 fn should_be_protected_by_inspect_message() {
     with_pocket_ic_context::<_, ()>(|ctx| {
-        assert!(ctx
-            .protected_by_inspect_message(alice())
-            .is_err());
+
+        let wrapper = std::panic::AssertUnwindSafe(ctx);
+        
+        let err = std::panic::catch_unwind(move || {
+            // This panics when rejected by inspect message
+            let _ = wrapper.protected_by_inspect_message(alice());
+        }).unwrap_err();
+        
+        assert!(err.downcast_ref::<String>().unwrap().contains("Call rejected by inspect check"));
+        
         Ok(())
     })
     .unwrap();

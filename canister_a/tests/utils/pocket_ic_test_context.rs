@@ -169,7 +169,7 @@ where
         deploy_canister(&client, get_canister_a_bytecode(), &canister_a_args);
 
         f(&PocketIcTestContext {
-        client,
+        client: client,
         canister_a_principal,
         canister_a_args,
         canister_b_principal,
@@ -178,7 +178,7 @@ where
 
 fn deploy_canister<T: CandidType>(client: &PocketIc, bytecode: Vec<u8>, args: &T) -> Principal {
     let args = encode(args);
-    let canister = client.create_canister(None);
+    let canister = client.create_canister();
     client.add_cycles(canister, 10_u128.pow(12));
     client.install_canister(canister, bytecode, args, None);
     canister
