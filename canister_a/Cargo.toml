@@ -4,16 +4,16 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-candid = { worspace = true }
-ic-cdk = { worspace = true }
-serde = { worspace = true }
+candid = { workspace = true }
+ic-cdk = { workspace = true }
+serde = { workspace = true }
 
 [dev-dependencies]
-flate2 = { worspace = true }
-futures = { worspace = true }
-log = { worspace = true }
-once_cell = { worspace = true }
-pocket-ic = { worspace = true }
+flate2 = { workspace = true }
+futures = { workspace = true }
+log = { workspace = true }
+once_cell = { workspace = true }
+pocket-ic = { workspace = true }
 reqwest = { workspace = true, features = [
   "blocking",
   "gzip",
@@ -21,4 +21,4 @@ reqwest = { workspace = true, features = [
   "rustls-tls",
   "trust-dns",
 ] }
-tokio = { worspace = true }
+tokio = { workspace = true }

@@ -4,6 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-candid = { worspace = true }
-ic-cdk = { worspace = true }
-serde = { worspace = true }
+candid = { workspace = true }
+ic-cdk = { workspace = true }
+serde = { workspace = true }
