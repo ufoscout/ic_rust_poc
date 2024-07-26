@@ -14,11 +14,11 @@ edition = "2021"
 candid = { version = "0.10" }
 flate2 = "1"
 futures = { version = "0.3", default-features = false }
-ic-cdk = "0.12"
+ic-cdk = "0.15"
 log = "0.4"
 once_cell = "1"
-pocket-ic = "2.1"
-reqwest = { version = "0.11", default-features = false }
+pocket-ic = "4"
+reqwest = { version = "0.12", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0.37"
 tokio = { version = "1", features = ["rt", "macros"] }
