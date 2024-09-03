@@ -1,6 +1,7 @@
 use std::{cell::RefCell, collections::HashMap};
 
-use candid::{candid_method, CandidType, Deserialize, Principal};
+use candid::{CandidType, Deserialize, Principal};
+use ic_cdk::{query, update};
 use request::{HttpRequest, HttpResponse};
 
 mod inspect_message;
@@ -28,7 +29,6 @@ pub struct InitArgs {
     pub canister_b_principal: Principal,
 }
 
-#[candid_method(init)]
 #[ic_cdk::init]
 fn init(arg: InitArgs) {
     CONFIG.with(|c| {
@@ -39,29 +39,24 @@ fn init(arg: InitArgs) {
     set_panic_hook()
 }
 
-// candid_method is used by the  candid::export_service!() macro to export the did
-#[candid_method(query)]
-#[ic_cdk::query]
+#[query]
 fn get_counter() -> u64 {
     COUNTER.with(|c| (*c.borrow()).clone())
 }
 
-#[candid_method(update)]
-#[ic_cdk::update]
+#[update]
 fn increase_counter() {
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
 }
 
-#[candid_method(update)]
-#[ic_cdk::update]
+#[update]
 async fn increase_counter_panic() {
     // The panic will revert this counter increase
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
     panic!()
 }
 
-#[candid_method(update)]
-#[ic_cdk::update]
+#[update]
 async fn increase_counter_then_call_async_fn_then_panic() {
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
 
@@ -73,8 +68,7 @@ async fn increase_counter_then_call_async_fn_then_panic() {
     panic!()
 }
 
-#[candid_method(update)]
-#[ic_cdk::update]
+#[update]
 async fn increase_counter_then_call_another_canister_then_panic() {
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
 
@@ -86,8 +80,7 @@ async fn increase_counter_then_call_another_canister_then_panic() {
     panic!()
 }
 
-#[candid_method(update)]
-#[ic_cdk::update]
+#[update]
 async fn increase_counter_then_call_same_canister_then_panic() {
     COUNTER.with(|counter| *counter.borrow_mut() += 1);
 
@@ -99,14 +92,12 @@ async fn increase_counter_then_call_same_canister_then_panic() {
     panic!()
 }
 
-#[candid_method(update)]
-#[ic_cdk::update]
+#[update]
 async fn get_counter_from_another_canister() -> u64 {
     canister_b_get_counter().await
 }
 
-#[candid_method(query)]
-#[ic_cdk::query]
+#[query]
 fn catch_panic() -> String {
     // This will NOT catch the panic.
     // wasm32-unknown-unknown is panic="abort" by default
@@ -118,9 +109,9 @@ fn catch_panic() -> String {
         Err(_) => "error".to_string(),
     }
 }
+
 // It should not be possible to call this method
-#[candid_method(update)]
-#[ic_cdk::update]
+#[update]
 fn protected_by_inspect_message() -> bool {
     true
 }
@@ -129,8 +120,7 @@ fn protected_by_inspect_message() -> bool {
 // If the response contains upgrade:true the call is upgraded to an update one
 // and the http_request_update method is called by the icx-proxy.
 // WARN: headers and body cannot be customized!!
-#[candid_method(query)]
-#[ic_cdk::query]
+#[query]
 fn http_request(req: HttpRequest) -> HttpResponse {
     ic_cdk::println!("http_request called with: {:?}", req);
     HttpResponse {
@@ -141,8 +131,7 @@ fn http_request(req: HttpRequest) -> HttpResponse {
     }
 }
 
-#[candid_method(update)]
-#[ic_cdk::update]
+#[update]
 pub fn http_request_update(req: HttpRequest) -> HttpResponse {
     ic_cdk::println!("http_request_update called with: {:?}", req);
     HttpResponse {
@@ -199,28 +188,5 @@ pub fn set_panic_hook() {
     }));
 }
 
-#[cfg(test)]
-mod test {
-
-    use super::*;
-    use std::env;
-    use std::fs::*;
-    use std::io::*;
-    use std::path::PathBuf;
-
-    /// This exports the candid service description to a String.
-    /// It includes only the methods with the `candid_method` macro
-    fn export_candid() -> String {
-        candid::export_service!();
-        __export_service()
-    }
-
-    #[test]
-    fn export_candid_file() {
-        let dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-        let path = dir.parent().unwrap().join("target").join("canister_a.did");
-        println!("path: {}", path.to_string_lossy());
-        let mut file = File::create(path).unwrap();
-        write!(file, "{}", export_candid()).expect("Write failed.");
-    }
-}
+// Enable Candid export
+ic_cdk::export_candid!();
