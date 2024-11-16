@@ -1,14 +1,14 @@
 use std::io::{Cursor, Read};
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 use std::time::Duration;
 use std::{env, fs};
 
 use flate2::read::GzDecoder;
 use log::*;
-use once_cell::sync::Lazy;
 pub use pocket_ic::*;
 
-const POCKET_IC_SERVER_VERSION: &str = "5.0.0";
+const POCKET_IC_SERVER_VERSION: &str = "7.0.0";
 
 /// Returns the pocket-ic client.
 /// If pocket-ic server binary is not present, it downloads it and sets
@@ -22,7 +22,10 @@ const POCKET_IC_SERVER_VERSION: &str = "5.0.0";
 ///
 /// It supports only linux and macos.
 pub fn get_pocket_ic_client() -> PocketIc {
-    static INITIALIZATION_STATUS: Lazy<bool> = Lazy::new(|| {
+    static INITIALIZATION_STATUS: OnceLock<bool> = OnceLock::new();
+
+    let status: &bool = INITIALIZATION_STATUS
+        .get_or_init(|| {
         if check_custom_pocket_ic_initialized() {
             // Custom server binary found. Let's use it.
             return true;
@@ -47,7 +50,7 @@ pub fn get_pocket_ic_client() -> PocketIc {
         true
     });
 
-    if !*INITIALIZATION_STATUS {
+    if !*status {
         panic!("pocket-ic is not initialized");
     }
 

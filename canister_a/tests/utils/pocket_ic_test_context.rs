@@ -14,8 +14,8 @@ pub fn alice() -> Principal {
 pub struct PocketIcTestContext {
     pub client: PocketIc,
     pub canister_a_principal: Principal,
-    pub canister_a_args: InitArgs,
-    pub canister_b_principal: Principal,
+    // pub canister_a_args: InitArgs,
+    // pub canister_b_principal: Principal,
 }
 
 impl PocketIcTestContext {
@@ -168,8 +168,8 @@ where
     f(&PocketIcTestContext {
         client: client,
         canister_a_principal,
-        canister_a_args,
-        canister_b_principal,
+        // canister_a_args,
+        // canister_b_principal,
     })
 }
 

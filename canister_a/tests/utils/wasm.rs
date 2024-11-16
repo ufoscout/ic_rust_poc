@@ -1,18 +1,17 @@
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
-
-use once_cell::sync::OnceCell;
+use std::sync::OnceLock;
 
 pub fn get_canister_a_bytecode() -> Vec<u8> {
-    static CANISTER_BYTECODE: OnceCell<Vec<u8>> = OnceCell::new();
+    static CANISTER_BYTECODE: OnceLock<Vec<u8>> = OnceLock::new();
     CANISTER_BYTECODE
         .get_or_init(|| load_canister_bytecode("canister_a.wasm"))
         .to_owned()
 }
 
 pub fn get_canister_b_bytecode() -> Vec<u8> {
-    static CANISTER_BYTECODE: OnceCell<Vec<u8>> = OnceCell::new();
+    static CANISTER_BYTECODE: OnceLock<Vec<u8>> = OnceLock::new();
     CANISTER_BYTECODE
         .get_or_init(|| load_canister_bytecode("canister_b.wasm"))
         .to_owned()
