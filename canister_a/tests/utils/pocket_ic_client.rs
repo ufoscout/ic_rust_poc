@@ -24,8 +24,7 @@ const POCKET_IC_SERVER_VERSION: &str = "7.0.0";
 pub fn get_pocket_ic_client() -> PocketIc {
     static INITIALIZATION_STATUS: OnceLock<bool> = OnceLock::new();
 
-    let status: &bool = INITIALIZATION_STATUS
-        .get_or_init(|| {
+    let status: &bool = INITIALIZATION_STATUS.get_or_init(|| {
         if check_custom_pocket_ic_initialized() {
             // Custom server binary found. Let's use it.
             return true;

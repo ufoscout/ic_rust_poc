@@ -95,16 +95,14 @@ fn should_fail_to_catch_a_panic_in_wasm32() {
 #[test]
 fn should_be_protected_by_inspect_message() {
     with_pocket_ic_context::<_, ()>(|ctx| {
-
         let result = ctx.protected_by_inspect_message(alice());
-        
+
         match result {
             Ok(_) => panic!("Should not be able to call this function"),
-            Err(e) => assert!(e.to_string().contains("Call rejected by inspect check"))
- 
+            Err(e) => assert!(e.to_string().contains("Call rejected by inspect check")),
         }
 
-       Ok(())
+        Ok(())
     })
     .unwrap();
 }
