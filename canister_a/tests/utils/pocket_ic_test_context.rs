@@ -2,9 +2,9 @@ use candid::{CandidType, Deserialize, Principal};
 use candid::{Decode, Encode};
 
 use canister_a::InitArgs;
-use pocket_ic::{PocketIc, UserError, WasmResult};
+use ic_mple_pocket_ic::get_pocket_ic_client;
+use ic_mple_pocket_ic::pocket_ic::{PocketIc, RejectResponse};
 
-use crate::utils::pocket_ic_client::get_pocket_ic_client;
 use crate::utils::wasm::{get_canister_a_bytecode, get_canister_b_bytecode};
 
 pub fn alice() -> Principal {
@@ -29,14 +29,10 @@ impl PocketIcTestContext {
     where
         for<'a> Result: CandidType + Deserialize<'a>,
     {
-        let res = match self
+        let res = self
             .client
             .query_call(canister_id, sender, method, encode(args))
-            .unwrap()
-        {
-            WasmResult::Reply(bytes) => bytes,
-            WasmResult::Reject(e) => panic!("Unexpected reject: {:?}", e),
-        };
+            .unwrap();
 
         decode(&res)
     }
@@ -51,14 +47,10 @@ impl PocketIcTestContext {
     where
         for<'a> Result: CandidType + Deserialize<'a>,
     {
-        let res = match self
+        let res = self
             .client
             .update_call(canister_id, sender, method, encode(args))
-            .unwrap()
-        {
-            WasmResult::Reply(bytes) => bytes,
-            WasmResult::Reject(e) => panic!("Unexpected reject: {:?}", e),
-        };
+            .unwrap();
 
         decode(&res)
     }
@@ -83,7 +75,7 @@ impl PocketIcTestContext {
         self.update_call_as(self.canister_a_principal, sender, "increase_counter", args)
     }
 
-    pub fn catch_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
+    pub fn catch_panic(&self, sender: Principal) -> Result<Vec<u8>, RejectResponse> {
         let args = &();
         self.client.query_call(
             self.canister_a_principal,
@@ -93,7 +85,7 @@ impl PocketIcTestContext {
         )
     }
 
-    pub fn increase_counter_panic(&self, sender: Principal) -> Result<WasmResult, UserError> {
+    pub fn increase_counter_panic(&self, sender: Principal) -> Result<Vec<u8>, RejectResponse> {
         let args = &();
         self.client.update_call(
             self.canister_a_principal,
@@ -106,7 +98,7 @@ impl PocketIcTestContext {
     pub fn increase_counter_then_call_async_fn_then_panic(
         &self,
         sender: Principal,
-    ) -> Result<WasmResult, UserError> {
+    ) -> Result<Vec<u8>, RejectResponse> {
         let args = &();
         self.client.update_call(
             self.canister_a_principal,
@@ -119,7 +111,7 @@ impl PocketIcTestContext {
     pub fn increase_counter_then_call_another_canister_then_panic(
         &self,
         sender: Principal,
-    ) -> Result<WasmResult, UserError> {
+    ) -> Result<Vec<u8>, RejectResponse> {
         let args = &();
         self.client.update_call(
             self.canister_a_principal,
@@ -132,7 +124,7 @@ impl PocketIcTestContext {
     pub fn increase_counter_then_call_same_canister_then_panic(
         &self,
         sender: Principal,
-    ) -> Result<WasmResult, UserError> {
+    ) -> Result<Vec<u8>, RejectResponse> {
         let args = &();
         self.client.update_call(
             self.canister_a_principal,
@@ -142,7 +134,7 @@ impl PocketIcTestContext {
         )
     }
 
-    pub fn protected_by_inspect_message(&self, sender: Principal) -> Result<WasmResult, UserError> {
+    pub fn protected_by_inspect_message(&self, sender: Principal) -> Result<Vec<u8>, RejectResponse> {
         let args = &();
         self.client.update_call(
             self.canister_a_principal,
@@ -157,7 +149,7 @@ pub fn with_pocket_ic_context<'a, F, E>(f: F) -> Result<(), E>
 where
     F: FnOnce(&PocketIcTestContext) -> Result<(), E>,
 {
-    let client = get_pocket_ic_client();
+    let client = get_pocket_ic_client().build();
     let canister_b_principal = deploy_canister(&client, get_canister_b_bytecode(), &());
     let canister_a_args = InitArgs {
         canister_b_principal,

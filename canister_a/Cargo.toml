@@ -9,15 +9,6 @@ ic-cdk = { workspace = true }
 serde = { workspace = true }
 
 [dev-dependencies]
-flate2 = { workspace = true }
-futures = { workspace = true }
+ic_mple_pocket_ic = { workspace = true }
 log = { workspace = true }
-pocket-ic = { workspace = true }
-reqwest = { workspace = true, features = [
-  "blocking",
-  "gzip",
-  "json",
-  "rustls-tls",
-  "trust-dns",
-] }
 tokio = { workspace = true }

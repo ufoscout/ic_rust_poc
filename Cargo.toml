@@ -12,12 +12,9 @@ edition = "2021"
 
 [workspace.dependencies]
 candid = { version = "0.10" }
-flate2 = "1"
-futures = { version = "0.3", default-features = false }
 ic-cdk = "0.17"
+ic_mple_pocket_ic = "0.4.1"
 log = "0.4"
-pocket-ic = "6"
-reqwest = { version = "0.12", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "2"
 tokio = { version = "1", features = ["rt", "macros"] }
