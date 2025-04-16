@@ -134,7 +134,10 @@ impl PocketIcTestContext {
         )
     }
 
-    pub fn protected_by_inspect_message(&self, sender: Principal) -> Result<Vec<u8>, RejectResponse> {
+    pub fn protected_by_inspect_message(
+        &self,
+        sender: Principal,
+    ) -> Result<Vec<u8>, RejectResponse> {
         let args = &();
         self.client.update_call(
             self.canister_a_principal,
@@ -149,7 +152,11 @@ impl PocketIcTestContext {
         self.query_as(self.canister_a_principal, sender, "get_drop_counter", args)
     }
 
-    pub fn increase_drop_counter(&self, sender: Principal, should_panic: bool) -> Result<Vec<u8>, RejectResponse> {
+    pub fn increase_drop_counter(
+        &self,
+        sender: Principal,
+        should_panic: bool,
+    ) -> Result<Vec<u8>, RejectResponse> {
         let args = &(should_panic);
         self.client.update_call(
             self.canister_a_principal,

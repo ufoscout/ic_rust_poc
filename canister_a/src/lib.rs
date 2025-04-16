@@ -119,11 +119,10 @@ fn protected_by_inspect_message() -> bool {
 
 // As wasm32-unknown-unknown is panic="abort" by default
 // even setting `panic = "unwind"` in Cargo.toml has no effect.
-// This will panic and the drop method will not be called so the 
+// This will panic and the drop method will not be called so the
 // drop counter will not be incremented.
 #[update]
 fn increase_drop_counter(should_panic: bool) {
-
     struct Foo;
 
     impl Drop for Foo {
@@ -170,8 +169,6 @@ pub fn http_request_update(req: HttpRequest) -> HttpResponse {
         upgrade: None,
     }
 }
-
-
 
 async fn canister_b_get_counter() -> u64 {
     let canister_b_principal = CONFIG.with(|c| c.borrow().canister_b_principal);
