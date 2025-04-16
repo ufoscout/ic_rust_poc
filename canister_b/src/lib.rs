@@ -2,13 +2,13 @@ use ic_cdk::{query, update};
 use std::cell::RefCell;
 
 thread_local! {
-    static COUNTER: RefCell<u64> = RefCell::new(999_999_999);
+    static COUNTER: RefCell<u64> = const { RefCell::new(999_999_999) };
 }
 
 /// Get the value of the counter.
 #[query]
 fn get_counter() -> u64 {
-    COUNTER.with(|c| (*c.borrow()).clone())
+    COUNTER.with(|c| (*c.borrow()))
 }
 
 /// Increment the value of the counter.

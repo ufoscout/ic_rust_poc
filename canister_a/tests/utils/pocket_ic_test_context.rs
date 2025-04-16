@@ -167,7 +167,7 @@ impl PocketIcTestContext {
     }
 }
 
-pub fn with_pocket_ic_context<'a, F, E>(f: F) -> Result<(), E>
+pub fn with_pocket_ic_context<F, E>(f: F) -> Result<(), E>
 where
     F: FnOnce(&PocketIcTestContext) -> Result<(), E>,
 {
@@ -180,7 +180,7 @@ where
         deploy_canister(&client, get_canister_a_bytecode(), &canister_a_args);
 
     f(&PocketIcTestContext {
-        client: client,
+        client,
         canister_a_principal,
         // canister_a_args,
         // canister_b_principal,

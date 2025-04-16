@@ -8,8 +8,8 @@ mod inspect_message;
 mod request;
 
 thread_local! {
-    static COUNTER: RefCell<u64> = RefCell::new(0);
-    static DROP_COUNTER: RefCell<u64> = RefCell::new(0);
+    static COUNTER: RefCell<u64> = const { RefCell::new(0) };
+    static DROP_COUNTER: RefCell<u64> = const { RefCell::new(0) };
     static CONFIG: RefCell<Config> = RefCell::new(Config::default());
 }
 
@@ -42,7 +42,7 @@ fn init(arg: InitArgs) {
 
 #[query]
 fn get_counter() -> u64 {
-    COUNTER.with(|c| (*c.borrow()).clone())
+    COUNTER.with(|c| (*c.borrow()))
 }
 
 #[update]
@@ -141,7 +141,7 @@ fn increase_drop_counter(should_panic: bool) {
 
 #[query]
 fn get_drop_counter() -> u64 {
-    DROP_COUNTER.with(|c| (*c.borrow()).clone())
+    DROP_COUNTER.with(|c| (*c.borrow()))
 }
 
 // This handles HTTP requests.
