@@ -106,3 +106,27 @@ fn should_be_protected_by_inspect_message() {
     })
     .unwrap();
 }
+
+#[test]
+fn should_increase_drop_counter() {
+    with_pocket_ic_context::<_, ()>(|ctx| {
+        let caller = alice();
+        assert_eq!(0, ctx.get_drop_counter(caller));
+        assert!(ctx.increase_drop_counter(caller, false).is_ok());
+        assert_eq!(1, ctx.get_drop_counter(caller));
+        Ok(())
+    })
+    .unwrap();
+}
+
+#[test]
+fn should_not_increase_drop_counter_on_panics() {
+    with_pocket_ic_context::<_, ()>(|ctx| {
+        let caller = alice();
+        assert_eq!(0, ctx.get_drop_counter(caller));
+        assert!(ctx.increase_drop_counter(caller, true).is_err());
+        assert_eq!(0, ctx.get_drop_counter(caller));
+        Ok(())
+    })
+    .unwrap();
+}

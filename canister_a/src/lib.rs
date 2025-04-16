@@ -9,6 +9,7 @@ mod request;
 
 thread_local! {
     static COUNTER: RefCell<u64> = RefCell::new(0);
+    static DROP_COUNTER: RefCell<u64> = RefCell::new(0);
     static CONFIG: RefCell<Config> = RefCell::new(Config::default());
 }
 
@@ -116,6 +117,34 @@ fn protected_by_inspect_message() -> bool {
     true
 }
 
+// As wasm32-unknown-unknown is panic="abort" by default
+// even setting `panic = "unwind"` in Cargo.toml has no effect.
+// This will panic and the drop method will not be called so the 
+// drop counter will not be incremented.
+#[update]
+fn increase_drop_counter(should_panic: bool) {
+
+    struct Foo;
+
+    impl Drop for Foo {
+        fn drop(&mut self) {
+            DROP_COUNTER.with(|c| *c.borrow_mut() += 1);
+            ic_cdk::println!("Foo dropped");
+        }
+    }
+
+    let _foo = Foo;
+
+    if should_panic {
+        panic!("Manual panic")
+    }
+}
+
+#[query]
+fn get_drop_counter() -> u64 {
+    DROP_COUNTER.with(|c| (*c.borrow()).clone())
+}
+
 // This handles HTTP requests.
 // If the response contains upgrade:true the call is upgraded to an update one
 // and the http_request_update method is called by the icx-proxy.
@@ -141,6 +170,8 @@ pub fn http_request_update(req: HttpRequest) -> HttpResponse {
         upgrade: None,
     }
 }
+
+
 
 async fn canister_b_get_counter() -> u64 {
     let canister_b_principal = CONFIG.with(|c| c.borrow().canister_b_principal);

@@ -143,6 +143,21 @@ impl PocketIcTestContext {
             encode(args),
         )
     }
+
+    pub fn get_drop_counter(&self, sender: Principal) -> u64 {
+        let args = &();
+        self.query_as(self.canister_a_principal, sender, "get_drop_counter", args)
+    }
+
+    pub fn increase_drop_counter(&self, sender: Principal, should_panic: bool) -> Result<Vec<u8>, RejectResponse> {
+        let args = &(should_panic);
+        self.client.update_call(
+            self.canister_a_principal,
+            sender,
+            "increase_drop_counter",
+            encode(args),
+        )
+    }
 }
 
 pub fn with_pocket_ic_context<'a, F, E>(f: F) -> Result<(), E>
