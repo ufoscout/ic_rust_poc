@@ -39,9 +39,10 @@ fn should_not_increase_counter_on_panics() {
 fn should_not_commit_data_on_await_point_before_panic() {
     with_pocket_ic_context::<_, ()>(|ctx| {
         assert_eq!(0, ctx.get_counter(alice()));
-        assert!(ctx
-            .increase_counter_then_call_async_fn_then_panic(alice())
-            .is_err());
+        assert!(
+            ctx.increase_counter_then_call_async_fn_then_panic(alice())
+                .is_err()
+        );
         assert_eq!(0, ctx.get_counter(alice()));
         Ok(())
     })
@@ -52,9 +53,10 @@ fn should_not_commit_data_on_await_point_before_panic() {
 fn should_commit_data_on_inter_canister_call_point_before_panic() {
     with_pocket_ic_context::<_, ()>(|ctx| {
         assert_eq!(0, ctx.get_counter(alice()));
-        assert!(ctx
-            .increase_counter_then_call_another_canister_then_panic(alice())
-            .is_err());
+        assert!(
+            ctx.increase_counter_then_call_another_canister_then_panic(alice())
+                .is_err()
+        );
         assert_eq!(1, ctx.get_counter(alice()));
         Ok(())
     })
@@ -65,9 +67,10 @@ fn should_commit_data_on_inter_canister_call_point_before_panic() {
 fn should_commit_data_on_inter_canister_call_to_itself_before_panic() {
     with_pocket_ic_context::<_, ()>(|ctx| {
         assert_eq!(0, ctx.get_counter(alice()));
-        assert!(ctx
-            .increase_counter_then_call_same_canister_then_panic(alice())
-            .is_err());
+        assert!(
+            ctx.increase_counter_then_call_same_canister_then_panic(alice())
+                .is_err()
+        );
         assert_eq!(1, ctx.get_counter(alice()));
         Ok(())
     })

@@ -172,17 +172,20 @@ pub fn http_request_update(req: HttpRequest) -> HttpResponse {
 
 async fn canister_b_get_counter() -> u64 {
     let canister_b_principal = CONFIG.with(|c| c.borrow().canister_b_principal);
-    let call_result =
-        ic_cdk::call::Call::unbounded_wait(canister_b_principal, "get_counter").await.unwrap();
+    let call_result = ic_cdk::call::Call::unbounded_wait(canister_b_principal, "get_counter")
+        .await
+        .unwrap();
 
     Decode!(&call_result, u64).unwrap()
 }
 
 async fn inter_canister_get_counter_call_to_itself() -> u64 {
     let call_result =
-        ic_cdk::call::Call::unbounded_wait(ic_cdk::api::canister_self(), "get_counter").await.unwrap();
+        ic_cdk::call::Call::unbounded_wait(ic_cdk::api::canister_self(), "get_counter")
+            .await
+            .unwrap();
 
-        Decode!(&call_result, u64).unwrap()
+    Decode!(&call_result, u64).unwrap()
 }
 
 async fn do_something_async() {
