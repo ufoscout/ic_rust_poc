@@ -14,7 +14,7 @@ fn inspect_message_impl() {
     };
 
     if let Err(e) = check_result {
-        ic_cdk::trap(&format!("Call rejected by inspect check: {e:?}"));
+        ic_cdk::trap(format!("Call rejected by inspect check: {e:?}"));
     } else {
         ic_cdk::api::accept_message();
     }
