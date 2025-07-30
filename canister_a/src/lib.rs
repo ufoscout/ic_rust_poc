@@ -212,7 +212,7 @@ pub fn set_panic_hook() {
             },
         };
 
-        let err_info = format!("Panicked at '{}', {}:{}:{}", msg, file, line, col);
+        let err_info = format!("Panicked at '{msg}', {file}:{line}:{col}");
 
         ic_cdk::println!("------------------------");
         ic_cdk::println!("PANIC!");
